@@ -18,13 +18,13 @@ const client = new MongoClient(uri, {
     }
 });
 
-
 async function run() {
     try {
         await client.connect();
 
         const database = client.db("matrimonyDB");
         const biodataCollection = database.collection("biodata");
+        const favoritesCollection = database.collection("favorites");
 
         // Create Biodata
         app.post('/api/biodata', async (req, res) => {
@@ -39,7 +39,7 @@ async function run() {
             res.send(result);
         });
 
-        // Featured Premium APi
+        // Featured Premium
         app.get('/api/biodata/featured', async (req, res) => {
             const specialProfessions = ["doctor", "professor", "engineer", "actor", "sportsman"];
             const result = await biodataCollection.aggregate([
@@ -60,7 +60,7 @@ async function run() {
             res.send(result);
         });
 
-        // Search API (updated)
+        // Search
         app.get('/api/biodata/search', async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -70,12 +70,9 @@ async function run() {
             if (district) query.district = { $regex: district, $options: "i" };
             if (gender) query.gender = { $regex: gender, $options: "i" };
             if (religion) query.religion = { $regex: religion, $options: "i" };
-            try {
-                const result = await biodataCollection.find(query).toArray();
-                res.send(result);
-            } catch (err) {
-                res.status(500).send({ error: "Search failed", details: err.message });
-            }
+
+            const result = await biodataCollection.find(query).toArray();
+            res.send(result);
         });
 
         // Single biodata
@@ -85,19 +82,54 @@ async function run() {
             res.send(result);
         });
 
+        // ============================
+        // ⭐ FAVORITES API START
+        // ============================
+
+        // Add favorite
+        app.post('/api/favorites', async (req, res) => {
+            const { biodataId, email } = req.body;
+
+            // Duplicate check
+            const existing = await favoritesCollection.findOne({ biodataId, email });
+            if (existing) {
+                return res.send({ message: "Already added to favorites" });
+            }
+
+            const biodata = await biodataCollection.findOne({
+                _id: new ObjectId(biodataId)
+            });
+
+            const favoriteData = {
+                biodataId,
+                email,
+                biodata
+            };
+
+            const result = await favoritesCollection.insertOne(favoriteData);
+            res.send(result);
+        });
+
+        // Get favorites
+        app.get('/api/favorites', async (req, res) => {
+            const { email } = req.query;
+            const result = await favoritesCollection.find({ email }).toArray();
+            res.send(result);
+        });
+
         console.log("MongoDB Connected.");
 
     } catch (err) {
-        console.error("MongoDB ERROR:", err);
+        console.error(err);
     }
 }
 
-run().catch(console.dir);
+run();
 
 app.get('/', (req, res) => {
     res.send('Matrimony API Running')
 })
 
 app.listen(port, () => {
-    console.log(`Matrimony is running on port: ${port}`);
+    console.log(`Server running on port ${port}`);
 });
