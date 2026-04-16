@@ -83,7 +83,7 @@ async function run() {
         });
 
         // ============================
-        // ⭐ FAVORITES API START
+        // FAVORITES API START
         // ============================
 
         // Add favorite
