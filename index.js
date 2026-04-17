@@ -22,45 +22,25 @@ async function run() {
     try {
         await client.connect();
 
-        const database = client.db("matrimonyDB");
-        const biodataCollection = database.collection("biodata");
-        const favoritesCollection = database.collection("favorites");
+        const db = client.db("matrimonyDB");
+        const biodataCollection = db.collection("biodata");
+        const favoritesCollection = db.collection("favorites");
 
-        // Create Biodata
-        app.post('/api/biodata', async (req, res) => {
-            const data = req.body;
-            const result = await biodataCollection.insertOne(data);
-            res.send(result);
-        });
+        // UNIQUE INDEX (IMPORTANT)
+        await favoritesCollection.createIndex(
+            { biodataId: 1, email: 1 },
+            { unique: true }
+        );
 
-        // Get ALL Biodata
+        // ============================
+        // BIODATA APIs
+        // ============================
+
         app.get('/api/biodata', async (req, res) => {
             const result = await biodataCollection.find().toArray();
             res.send(result);
         });
 
-        // Featured Premium
-        app.get('/api/biodata/featured', async (req, res) => {
-            const specialProfessions = ["doctor", "professor", "engineer", "actor", "sportsman"];
-            const result = await biodataCollection.aggregate([
-                {
-                    $addFields: {
-                        priority: {
-                            $cond: [
-                                { $in: [{ $toLower: "$profession" }, specialProfessions] },
-                                1,
-                                2
-                            ]
-                        }
-                    }
-                },
-                { $sort: { priority: 1 } },
-                { $limit: 4 }
-            ]).toArray();
-            res.send(result);
-        });
-
-        // Search
         app.get('/api/biodata/search', async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -75,49 +55,57 @@ async function run() {
             res.send(result);
         });
 
-        // Single biodata
         app.get("/api/biodata/:id", async (req, res) => {
-            const { id } = req.params;
-            const result = await biodataCollection.findOne({ _id: new ObjectId(id) });
-            res.send(result);
-        });
-
-        // ============================
-        // FAVORITES API START
-        // ============================
-
-        // Add favorite
-        app.post('/api/favorites', async (req, res) => {
-            const { biodataId, email } = req.body;
-
-            // Duplicate check
-            const existing = await favoritesCollection.findOne({ biodataId, email });
-            if (existing) {
-                return res.send({ message: "Already added to favorites" });
-            }
-
-            const biodata = await biodataCollection.findOne({
-                _id: new ObjectId(biodataId)
+            const result = await biodataCollection.findOne({
+                _id: new ObjectId(req.params.id)
             });
-
-            const favoriteData = {
-                biodataId,
-                email,
-                biodata
-            };
-
-            const result = await favoritesCollection.insertOne(favoriteData);
             res.send(result);
         });
 
-        // Get favorites
+        // ============================
+        // FAVORITES APIs
+        // ============================
+
+        // Add Favorite
+        app.post('/api/favorites', async (req, res) => {
+            try {
+                const { biodataId, email } = req.body;
+
+                const existing = await favoritesCollection.findOne({ biodataId, email });
+
+                if (existing) {
+                    return res.send({ message: "Already added" });
+                }
+
+                const result = await favoritesCollection.insertOne({
+                    biodataId,
+                    email
+                });
+
+                res.send(result);
+
+            } catch (err) {
+                res.status(500).send({ error: "Error adding favorite" });
+            }
+        });
+
+        //  Get Favorites
         app.get('/api/favorites', async (req, res) => {
             const { email } = req.query;
+
             const result = await favoritesCollection.find({ email }).toArray();
             res.send(result);
         });
 
-        console.log("MongoDB Connected.");
+        // Remove Favorite
+        app.delete('/api/favorites', async (req, res) => {
+            const { biodataId, email } = req.body;
+
+            const result = await favoritesCollection.deleteOne({ biodataId, email });
+            res.send(result);
+        });
+
+        console.log("MongoDB Connected");
 
     } catch (err) {
         console.error(err);
@@ -127,9 +115,9 @@ async function run() {
 run();
 
 app.get('/', (req, res) => {
-    res.send('Matrimony API Running')
-})
+    res.send('Server Running');
+});
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server running on ${port}`);
 });
