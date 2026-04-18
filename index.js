@@ -27,7 +27,7 @@ async function run() {
         const biodataCollection = db.collection("biodata");
         const favoritesCollection = db.collection("favorites");
 
-        // ============================
+
         // UNIQUE INDEX
         // ============================
         await favoritesCollection.createIndex(
@@ -35,8 +35,8 @@ async function run() {
             { unique: true }
         );
 
-        // ============================
-        // FEATURED (🔥 MUST BEFORE :id)
+
+        // FEATURED ( MUST BEFORE :id)
         // ============================
         app.get('/api/biodata/featured', async (req, res) => {
             try {
@@ -56,7 +56,6 @@ async function run() {
             }
         });
 
-        // ============================
         // GET ALL
         // ============================
         app.get('/api/biodata', async (req, res) => {
@@ -64,7 +63,7 @@ async function run() {
             res.send(result);
         });
 
-        // ============================
+
         // SEARCH
         // ============================
         app.get('/api/biodata/search', async (req, res) => {
@@ -81,7 +80,6 @@ async function run() {
             res.send(result);
         });
 
-        // ============================
         // GET SINGLE (SAFE)
         // ============================
         app.get("/api/biodata/:id", async (req, res) => {
@@ -107,7 +105,6 @@ async function run() {
             }
         });
 
-        // ============================
         // FAVORITES
         // ============================
 
