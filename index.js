@@ -173,6 +173,7 @@ async function run() {
                 age,
                 gender,
                 religion,
+                country,
                 district,
                 about
             } = req.body;
@@ -187,6 +188,7 @@ async function run() {
                         age,
                         gender,
                         religion,
+                        country,
                         district,
                         about
                     }
