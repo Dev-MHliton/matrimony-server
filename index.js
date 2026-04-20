@@ -166,7 +166,9 @@ async function run() {
 
         // Update user 
         app.put("/api/user", async (req, res) => {
+
             const { email, name, phone, age, gender, religion, country, district, about } = req.body;
+
             const result = await usersCollection.updateOne(
                 { email },
                 {
