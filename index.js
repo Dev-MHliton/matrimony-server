@@ -170,17 +170,7 @@ async function run() {
             const result = await usersCollection.updateOne(
                 { email },
                 {
-                    $set: {
-                        email,
-                        name,
-                        phone,
-                        age,
-                        gender,
-                        religion,
-                        country,
-                        district,
-                        about
-                    }
+                    $set: { email, name, phone, age, gender, religion, country, district, about }
                 },
                 { upsert: true }
             );
