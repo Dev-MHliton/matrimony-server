@@ -28,6 +28,7 @@ async function run() {
 
         const db = client.db("matrimonyDB");
 
+        // DB_Collections 
         const biodataCollection = db.collection("biodata");
         const favoritesCollection = db.collection("favorites");
         const usersCollection = db.collection("users");
