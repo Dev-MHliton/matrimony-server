@@ -2,16 +2,16 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-const app = express();
-
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+
+const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
-// MongoDB CONNECTION
+// MongoDB URI
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uru7rsz.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -32,20 +32,38 @@ async function run() {
         const favoritesCollection = db.collection("favorites");
         const usersCollection = db.collection("users");
 
-        //Favorites unique index 
-        await favoritesCollection.createIndex(
-            { biodataId: 1, email: 1 },
-            { unique: true }
-        );
+        console.log("MongoDB Connected 🚀");
 
+        // =========================
+        // CREATE BIODATA (POST)
+        // =========================
+        app.post("/api/biodata", async (req, res) => {
+            try {
+                const biodata = req.body;
 
-        // Get all biodata
+                const result = await biodataCollection.insertOne(biodata);
+
+                res.send({
+                    success: true,
+                    _id: result.insertedId
+                });
+
+            } catch (err) {
+                res.status(500).send({ success: false, error: "Insert failed" });
+            }
+        });
+
+        // =========================
+        // GET ALL BIODATA
+        // =========================
         app.get("/api/biodata", async (req, res) => {
             const result = await biodataCollection.find().toArray();
             res.send(result);
         });
 
-        // Featured api
+        // =========================
+        // FEATURED BIODATA
+        // =========================
         app.get("/api/biodata/featured", async (req, res) => {
             const professions = ["doctor", "engineer", "professor", "actor", "sportsman"];
 
@@ -56,7 +74,9 @@ async function run() {
             res.send(result);
         });
 
-        // Search biodata
+        // =========================
+        // SEARCH BIODATA
+        // =========================
         app.get("/api/biodata/search", async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -72,7 +92,9 @@ async function run() {
             res.send(result);
         });
 
-        // Single biodata
+        // =========================
+        // SINGLE BIODATA
+        // =========================
         app.get("/api/biodata/:id", async (req, res) => {
             const id = req.params.id;
 
@@ -87,15 +109,67 @@ async function run() {
             res.send(result || {});
         });
 
-        //Add favorite
+        // =========================
+        // UPDATE BIODATA
+        // =========================
+        app.put("/api/biodata/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+
+                if (!ObjectId.isValid(id)) {
+                    return res.send({ success: false });
+                }
+
+                const result = await biodataCollection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: req.body }
+                );
+
+                res.send({ success: result.modifiedCount > 0 });
+
+            } catch {
+                res.status(500).send({ success: false });
+            }
+        });
+
+        // =========================
+        // DELETE BIODATA
+        // =========================
+        app.delete("/api/biodata/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+
+                if (!ObjectId.isValid(id)) {
+                    return res.send({ success: false });
+                }
+
+                const result = await biodataCollection.deleteOne({
+                    _id: new ObjectId(id)
+                });
+
+                res.send({ success: result.deletedCount > 0 });
+
+            } catch {
+                res.status(500).send({ success: false });
+            }
+        });
+
+        // =========================
+        // FAVORITES INDEX
+        // =========================
+        await favoritesCollection.createIndex(
+            { biodataId: 1, email: 1 },
+            { unique: true }
+        );
+
+        // =========================
+        // ADD FAVORITE
+        // =========================
         app.post("/api/favorites", async (req, res) => {
             try {
                 const { biodataId, email } = req.body;
 
-                const exists = await favoritesCollection.findOne({
-                    biodataId,
-                    email
-                });
+                const exists = await favoritesCollection.findOne({ biodataId, email });
 
                 if (exists) {
                     return res.status(409).send({ message: "Already added" });
@@ -113,7 +187,9 @@ async function run() {
             }
         });
 
-        // Get favorite
+        // =========================
+        // GET FAVORITES
+        // =========================
         app.get("/api/favorites", async (req, res) => {
             try {
                 const { email } = req.query;
@@ -143,7 +219,9 @@ async function run() {
             }
         });
 
-        // Delete Favorite
+        // =========================
+        // DELETE FAVORITE
+        // =========================
         app.delete("/api/favorites", async (req, res) => {
             const { biodataId, email } = req.body;
 
@@ -155,7 +233,9 @@ async function run() {
             res.send(result);
         });
 
-        //Get user
+        // =========================
+        // USER GET
+        // =========================
         app.get("/api/user", async (req, res) => {
             const { email } = req.query;
 
@@ -164,31 +244,27 @@ async function run() {
             res.send(user || {});
         });
 
-        // Update user 
+        // =========================
+        // USER UPDATE
+        // =========================
         app.put("/api/user", async (req, res) => {
-
-            const { email, name, phone, age, gender, religion, country, district, about } = req.body;
+            const { email, ...data } = req.body;
 
             const result = await usersCollection.updateOne(
                 { email },
-                {
-                    $set: { email, name, phone, age, gender, religion, country, district, about }
-                },
+                { $set: { email, ...data } },
                 { upsert: true }
             );
 
             res.send(result);
         });
 
-        console.log("🚀 MongoDB Connected Successfully");
-
     } catch (err) {
-        console.error("Server Error:", err);
+        console.error("Mongo Error:", err);
     }
 }
 
 run();
-
 
 app.get("/", (req, res) => {
     res.send("Matrimony Server Running 🚀");
