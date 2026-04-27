@@ -34,9 +34,7 @@ async function run() {
 
         console.log("MongoDB Connected 🚀");
 
-        // =========================
-        // CREATE BIODATA (POST)
-        // =========================
+        // Create biodata (POST) 
         app.post("/api/biodata", async (req, res) => {
             try {
                 const biodata = req.body;
@@ -53,17 +51,12 @@ async function run() {
             }
         });
 
-        // =========================
-        // GET ALL BIODATA
-        // =========================
+        //Get all biodata
         app.get("/api/biodata", async (req, res) => {
             const result = await biodataCollection.find().toArray();
             res.send(result);
         });
-
-        // =========================
-        // FEATURED BIODATA
-        // =========================
+        // Featured biodata 
         app.get("/api/biodata/featured", async (req, res) => {
             const professions = ["doctor", "engineer", "professor", "actor", "sportsman"];
 
@@ -74,9 +67,7 @@ async function run() {
             res.send(result);
         });
 
-        // =========================
-        // SEARCH BIODATA
-        // =========================
+        //    Search biodata 
         app.get("/api/biodata/search", async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -92,9 +83,7 @@ async function run() {
             res.send(result);
         });
 
-        // =========================
-        // SINGLE BIODATA
-        // =========================
+        //   Single biodata 
         app.get("/api/biodata/:id", async (req, res) => {
             const id = req.params.id;
 
@@ -109,9 +98,7 @@ async function run() {
             res.send(result || {});
         });
 
-        // =========================
-        // UPDATE BIODATA
-        // =========================
+        //    Update biodata 
         app.put("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -132,9 +119,7 @@ async function run() {
             }
         });
 
-        // =========================
-        // DELETE BIODATA
-        // =========================
+        // Delete biodata 
         app.delete("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -162,9 +147,7 @@ async function run() {
             { unique: true }
         );
 
-        // =========================
-        // ADD FAVORITE
-        // =========================
+        //    Favorite index 
         app.post("/api/favorites", async (req, res) => {
             try {
                 const { biodataId, email } = req.body;
@@ -187,9 +170,7 @@ async function run() {
             }
         });
 
-        // =========================
-        // GET FAVORITES
-        // =========================
+        // Get Favorites 
         app.get("/api/favorites", async (req, res) => {
             try {
                 const { email } = req.query;
@@ -219,9 +200,7 @@ async function run() {
             }
         });
 
-        // =========================
-        // DELETE FAVORITE
-        // =========================
+        // Delete Favorites 
         app.delete("/api/favorites", async (req, res) => {
             const { biodataId, email } = req.body;
 
@@ -233,9 +212,7 @@ async function run() {
             res.send(result);
         });
 
-        // =========================
-        // USER GET
-        // =========================
+        //    User Get 
         app.get("/api/user", async (req, res) => {
             const { email } = req.query;
 
@@ -244,9 +221,7 @@ async function run() {
             res.send(user || {});
         });
 
-        // =========================
-        // USER UPDATE
-        // =========================
+        //   User Update 
         app.put("/api/user", async (req, res) => {
             const { email, ...data } = req.body;
 
