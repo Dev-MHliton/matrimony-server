@@ -32,7 +32,7 @@ async function run() {
         const favoritesCollection = db.collection("favorites");
         const usersCollection = db.collection("users");
 
-        console.log("MongoDB Connected 🚀");
+        console.log("MongoDB Connected...");
 
         // Create biodata (POST) 
         app.post("/api/biodata", async (req, res) => {
@@ -241,7 +241,7 @@ async function run() {
 run();
 
 app.get("/", (req, res) => {
-    res.send("Matrimony Server Running 🚀");
+    res.send("Matrimony Server Running");
 });
 
 app.listen(port, () => {
