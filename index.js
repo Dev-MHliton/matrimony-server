@@ -28,14 +28,14 @@ async function run() {
 
         const db = client.db("matrimonyDB");
 
-        // DB_Collections 
+        // DB_Collections ...........................................................!
         const biodataCollection = db.collection("biodata");
         const favoritesCollection = db.collection("favorites");
         const usersCollection = db.collection("users");
 
         console.log("MongoDB Connected...");
 
-        // Create biodata (POST) 
+        // Create biodata (POST) ...........................................................! 
         app.post("/api/biodata", async (req, res) => {
             try {
                 const biodata = req.body;
@@ -52,12 +52,13 @@ async function run() {
             }
         });
 
-        //Get all biodata
+        //Get all biodata ...........................................................!
         app.get("/api/biodata", async (req, res) => {
             const result = await biodataCollection.find().toArray();
             res.send(result);
         });
-        // Featured biodata 
+
+        //Featured biodata ...........................................................! 
         app.get("/api/biodata/featured", async (req, res) => {
             const professions = ["doctor", "engineer", "professor", "actor", "sportsman"];
 
@@ -68,7 +69,7 @@ async function run() {
             res.send(result);
         });
 
-        //    Search biodata 
+        //Search biodata ...........................................................!
         app.get("/api/biodata/search", async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -84,7 +85,7 @@ async function run() {
             res.send(result);
         });
 
-        //   Single biodata 
+        //Single biodata ...........................................................!
         app.get("/api/biodata/:id", async (req, res) => {
             const id = req.params.id;
 
@@ -99,7 +100,7 @@ async function run() {
             res.send(result || {});
         });
 
-        //    Update biodata 
+        //Update biodata ...........................................................! 
         app.put("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -120,7 +121,7 @@ async function run() {
             }
         });
 
-        // Delete biodata 
+        // Delete biodata ...........................................................!
         app.delete("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -140,15 +141,13 @@ async function run() {
             }
         });
 
-        // =========================
-        // FAVORITES INDEX
-        // =========================
+        //Favorite Index ...........................................................!
         await favoritesCollection.createIndex(
             { biodataId: 1, email: 1 },
             { unique: true }
         );
 
-        //    Favorite index 
+        //Favorite Index ...........................................................!
         app.post("/api/favorites", async (req, res) => {
             try {
                 const { biodataId, email } = req.body;
@@ -171,7 +170,7 @@ async function run() {
             }
         });
 
-        // Get Favorites 
+        //Get Favorites ...........................................................! 
         app.get("/api/favorites", async (req, res) => {
             try {
                 const { email } = req.query;
@@ -201,7 +200,7 @@ async function run() {
             }
         });
 
-        // Delete Favorites 
+        //Delete Favorites ...........................................................! 
         app.delete("/api/favorites", async (req, res) => {
             const { biodataId, email } = req.body;
 
@@ -222,7 +221,7 @@ async function run() {
             res.send(user || {});
         });
 
-        //   User Update 
+        //User Update ...........................................................! 
         app.put("/api/user", async (req, res) => {
             const { email, ...data } = req.body;
 
