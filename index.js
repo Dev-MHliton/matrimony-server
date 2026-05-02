@@ -9,6 +9,8 @@ const app = express();
 app.use(cors({
     origin: [
 
+        'https://matrimony-ba37a.web.app',
+        'https://matrimony-ba37a.firebaseapp.com',
     ],
     credentials: true
 }));
@@ -249,6 +251,4 @@ app.get("/", (req, res) => {
     res.send("Matrimony Server Running");
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+module.exports = app;
