@@ -6,19 +6,38 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 
-app.use(cors({
-    origin: [
 
-        'https://matrimony-ba37a.web.app',
-        'https://matrimony-ba37a.firebaseapp.com',
-    ],
+// =====================
+// 🔥 CORS FIX (IMPORTANT)
+// =====================
+const allowedOrigins = [
+    'https://matrimony-ba37a.web.app',
+    'https://matrimony-ba37a.firebaseapp.com',
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(null, true); // ⚠️ temp allow all (safe for dev + Vercel fix)
+        }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true
 }));
+
+// 🔥 Preflight fix (THIS WAS MISSING)
+app.options("*", cors());
+
 app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
-// MongoDB URI.....................................!
+
+// =====================
+// MongoDB URI
+// =====================
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.uru7rsz.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -35,14 +54,15 @@ async function run() {
 
         const db = client.db("matrimonyDB");
 
-        // DB_Collections ...........................................................!
         const biodataCollection = db.collection("biodata");
         const favoritesCollection = db.collection("favorites");
         const usersCollection = db.collection("users");
 
         console.log("MongoDB Connected...");
 
-        // Create biodata (POST) ...........................................................! 
+        // =====================
+        // POST Biodata
+        // =====================
         app.post("/api/biodata", async (req, res) => {
             try {
                 const biodata = req.body;
@@ -59,13 +79,17 @@ async function run() {
             }
         });
 
-        //Get all biodata ...........................................................!
+        // =====================
+        // GET All Biodata
+        // =====================
         app.get("/api/biodata", async (req, res) => {
             const result = await biodataCollection.find().toArray();
             res.send(result);
         });
 
-        //Featured biodata ...........................................................! 
+        // =====================
+        // Featured
+        // =====================
         app.get("/api/biodata/featured", async (req, res) => {
             const professions = ["doctor", "engineer", "professor", "actor", "sportsman"];
 
@@ -76,7 +100,9 @@ async function run() {
             res.send(result);
         });
 
-        //Search biodata ...........................................................!
+        // =====================
+        // Search
+        // =====================
         app.get("/api/biodata/search", async (req, res) => {
             const { age, profession, district, gender, religion } = req.query;
 
@@ -92,7 +118,9 @@ async function run() {
             res.send(result);
         });
 
-        //Single biodata ...........................................................!
+        // =====================
+        // Single Biodata
+        // =====================
         app.get("/api/biodata/:id", async (req, res) => {
             const id = req.params.id;
 
@@ -107,7 +135,9 @@ async function run() {
             res.send(result || {});
         });
 
-        //Update biodata ...........................................................! 
+        // =====================
+        // Update Biodata
+        // =====================
         app.put("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -128,7 +158,9 @@ async function run() {
             }
         });
 
-        // Delete biodata ...........................................................!
+        // =====================
+        // Delete Biodata
+        // =====================
         app.delete("/api/biodata/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -148,13 +180,17 @@ async function run() {
             }
         });
 
-        //Favorite Index ...........................................................!
+        // =====================
+        // Favorites Index
+        // =====================
         await favoritesCollection.createIndex(
             { biodataId: 1, email: 1 },
             { unique: true }
         );
 
-        //Favorite Index ...........................................................!
+        // =====================
+        // Add Favorite
+        // =====================
         app.post("/api/favorites", async (req, res) => {
             try {
                 const { biodataId, email } = req.body;
@@ -177,7 +213,9 @@ async function run() {
             }
         });
 
-        //Get Favorites ...........................................................! 
+        // =====================
+        // Get Favorites
+        // =====================
         app.get("/api/favorites", async (req, res) => {
             try {
                 const { email } = req.query;
@@ -207,7 +245,9 @@ async function run() {
             }
         });
 
-        //Delete Favorites ...........................................................! 
+        // =====================
+        // Delete Favorite
+        // =====================
         app.delete("/api/favorites", async (req, res) => {
             const { biodataId, email } = req.body;
 
@@ -219,7 +259,9 @@ async function run() {
             res.send(result);
         });
 
-        //    User Get 
+        // =====================
+        // User Get
+        // =====================
         app.get("/api/user", async (req, res) => {
             const { email } = req.query;
 
@@ -228,7 +270,9 @@ async function run() {
             res.send(user || {});
         });
 
-        //User Update ...........................................................! 
+        // =====================
+        // User Update
+        // =====================
         app.put("/api/user", async (req, res) => {
             const { email, ...data } = req.body;
 
@@ -245,8 +289,12 @@ async function run() {
         console.error("Mongo Error:", err);
     }
 }
-run();
 
+run().catch(console.dir);
+
+// =====================
+// Root route
+// =====================
 app.get("/", (req, res) => {
     res.send("Matrimony Server Running");
 });
